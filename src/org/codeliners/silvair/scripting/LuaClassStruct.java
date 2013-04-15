@@ -16,6 +16,7 @@ import java.util.WeakHashMap;
 public class LuaClassStruct {
 
     private static WeakHashMap<Object, LuaObject> objectLookup = new WeakHashMap<Object, LuaObject>();
+    private static HashMap<Class, LuaClassStruct> classLookup = new HashMap<Class, LuaClassStruct>();
 
     private Class javaClass;
     private LuaTable metatable;
@@ -37,6 +38,7 @@ public class LuaClassStruct {
         LuaTable classmt = new LuaTable();
         classmt.set("__call", new FunctionConstructor());
         classTable.setmetatable(classmt);
+        classLookup.put(javaClass, this);
     }
 
     public LuaObject createNewInstance(Varargs args) {
@@ -96,6 +98,13 @@ public class LuaClassStruct {
                 throw new LuaError("vm error: " + ex.getClass().getName() + ": " + ex.getMessage());
             }
         }
+    }
+
+    public static LuaObject toLuaObject(Object o) {
+        LuaObject ret = new LuaObject(o);
+        objectLookup.put(o, ret);
+        ret.setmetatable(classLookup.get(o.getClass()).metatable);
+        return ret;
     }
 
     private class FunctionConstructor extends VarArgFunction {
