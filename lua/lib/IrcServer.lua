@@ -25,7 +25,4 @@ function IrcServer:connect()
     local this = objresolve[self];
 
     _(this.socket or error("Already connected"));
-
 end
-
-return IrcServer;

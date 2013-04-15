@@ -25,4 +25,6 @@ function EventBus:post(event, ...)
     end
 end
 
-return EventBus;
+for k, v in pairs(EventBus) do
+    _ENV[k] = v;
+end
