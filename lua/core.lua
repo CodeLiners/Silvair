@@ -6,8 +6,7 @@ do
         --local f, m = load(r:readAll(), "lib: "..lib, "t" --[[no bytecode]], _ENV)
         --if not f then error(m); end
         --f()
-        libf = assert(loadfile(file:getAbsName()))
-        setfenv(libf, _G)
+        libf = assert(loadfile(file:getAbsName(), "bt", _G))
         return libf()
     end
     function require(...)
