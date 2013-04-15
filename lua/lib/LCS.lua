@@ -1,4 +1,4 @@
-function setup(...)
+local function setup(...)
       -- Copyright (c) 2012 Roland Yonaba
   --[[
   This software is provided 'as-is', without any express or implied
@@ -207,8 +207,4 @@ function setup(...)
         {__call = function(self,...) return Class(...) end}),
       }
 end
-local r = setup(...);
-_VERSION = r._VERSION;
-is_A = r.is_A;
-class = r.class;
-print(class);
+LCS = setup(...);

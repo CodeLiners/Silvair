@@ -2,7 +2,6 @@ package org.codeliners.silvair.scripting.lib;
 
 import org.codeliners.silvair.scripting.LuaClass;
 import org.codeliners.silvair.scripting.lib.api.IInputStreamProvider;
-import org.codeliners.silvair.scripting.lib.api.IInputStreamProvider;
 import org.codeliners.silvair.scripting.lib.api.IOutputStreamProvider;
 import org.codeliners.silvair.utils.IStartable;
 import org.luaj.vm2.LuaError;

@@ -1,6 +1,4 @@
-local LCS = require "LCS";
-
-local IrcServer = LCS.class{name = "IrcServer"};
+IrcServer = LCS.class{name = "IrcServer"};
 local objresolve = setmetatable({}, {__mode = "k"});
 
 function IrcServer:init(conf)

@@ -65,4 +65,8 @@ public class LuaFile implements IOutputStreamProvider, IInputStreamProvider{
     public static Varargs combine(Varargs args) {
         return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(new File(args.checkjstring(1), args.checkjstring(2)).getAbsolutePath())});
     }
+
+    public Varargs getAbsName(Varargs args) {
+        return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(f.getAbsolutePath())});
+    }
 }

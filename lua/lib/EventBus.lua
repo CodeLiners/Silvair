@@ -1,6 +1,4 @@
-local LCS = require "LCS";
-
-local EventBus = LCS.class{name = "util.EventBus"};
+EventBus = LCS.class{name = "util.EventBus"};
 
 function EventBus:init()
     self.callbacks = {};
@@ -23,8 +21,4 @@ function EventBus:post(event, ...)
     for k, v in ipairs(self.callbacks[name]) do
         v(...);
     end
-end
-
-for k, v in pairs(EventBus) do
-    _ENV[k] = v;
 end
