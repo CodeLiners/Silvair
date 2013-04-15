@@ -3,13 +3,14 @@ package org.codeliners.silvair.irc;
 import org.codeliners.silvair.scripting.LuaClass;
 import org.codeliners.silvair.scripting.LuaClassStruct;
 import org.codeliners.silvair.scripting.LuaMachine;
+import org.codeliners.silvair.scripting.LuaObject;
 import org.luaj.vm2.*;
 
 import java.io.*;
 import java.net.Socket;
 
-@LuaClass("class.net.Socket")
-public class IrcConnection {
+@LuaClass("class.net.TextSocket")
+public class LuaTextSocket {
 
     private final String server;
     private final int port;
@@ -17,15 +18,26 @@ public class IrcConnection {
     private BufferedReader reader;
     private BufferedWriter writer;
 
-    public IrcConnection(Varargs args) {
+    public LuaTextSocket(Socket s) throws IOException {
+        socket = s;
+        server = null;
+        port = -1;
+        setup();
+    }
+
+    private void setup() throws IOException {
+        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        new ReadThread();
+    }
+
+    public LuaTextSocket(Varargs args) {
         server = args.checkjstring(1);
         port = args.checkint(2);
 
         try {
             socket = new Socket(server, port);
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            new ReadThread();
+            setup();
         } catch (IOException e) {
             throw new LuaError(e);
         }
@@ -38,11 +50,12 @@ public class IrcConnection {
                 while (true) {
                     String line = reader.readLine();
                     if (line == null) {
-                        LuaMachine.eventLib.raise("server_connection_closed", LuaValue.varargsOf(new LuaValue[]{
+                        LuaMachine.eventLib.raise("socket_connection_closed", LuaValue.varargsOf(new LuaValue[]{
                                 LuaClassStruct.getLuaObjectOf(this)
                         }));
+                        break;
                     }
-                    LuaMachine.eventLib.raise("server_line_arrive", LuaValue.varargsOf(new LuaValue[]{
+                    LuaMachine.eventLib.raise("socket_line", LuaValue.varargsOf(new LuaValue[]{
                             LuaClassStruct.getLuaObjectOf(this),
                             LuaValue.valueOf(line)
                     }));
@@ -57,6 +70,15 @@ public class IrcConnection {
         try {
             writer.write(args.checkjstring(1) + "\n");
             writer.flush();
+        } catch (IOException e) {
+            throw new LuaError(e.getMessage());
+        }
+        return LuaValue.varargsOf(new LuaValue[0]);
+    }
+
+    public Varargs close(Varargs args) {
+        try {
+            socket.close();
         } catch (IOException e) {
             throw new LuaError(e.getMessage());
         }

@@ -1,7 +1,8 @@
 package org.codeliners.silvair.core;
 
-import org.codeliners.silvair.irc.IrcConnection;
+import org.codeliners.silvair.irc.LuaTextSocket;
 import org.codeliners.silvair.scripting.LuaMachine;
+import org.codeliners.silvair.scripting.LuaServerSocket;
 import org.codeliners.silvair.scripting.ScriptingRegistry;
 import org.codeliners.silvair.scripting.lib.LuaSocket;
 
@@ -13,8 +14,9 @@ public class Silvair {
     public Silvair(String args[]) {
         this.args = args;
 
-        //ScriptingRegistry.registerClass(LuaSocket.class);
-        ScriptingRegistry.registerClass(IrcConnection.class);
+        ScriptingRegistry.registerClass(LuaSocket.class);
+        ScriptingRegistry.registerClass(LuaTextSocket.class);
+        ScriptingRegistry.registerClass(LuaServerSocket.class);
 
         luaMachine = new LuaMachine(this);
     }

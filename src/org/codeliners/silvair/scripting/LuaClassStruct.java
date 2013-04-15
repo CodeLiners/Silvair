@@ -19,14 +19,14 @@ public class LuaClassStruct {
     private static HashMap<Class, LuaClassStruct> classLookup = new HashMap<Class, LuaClassStruct>();
 
     private Class javaClass;
-    private LuaTable metatable;
-    private LuaTable classTable;
+    private LuaTable metatable = new LuaTable();
+    private LuaTable classTable = new LuaTable();
 
     public LuaClassStruct(Class javaClass) {
 
         this.javaClass = javaClass;
         for (Method m : javaClass.getMethods()) {
-            if (!(m.getParameterTypes().equals(Varargs.class) && m.getReturnType().equals(Varargs.class)))
+            if (!(m.getParameterTypes() == new Class[]{Varargs.class} && m.getReturnType() == Varargs.class))
                 continue;
             if (Modifier.isStatic(m.getModifiers())) {
                 classTable.set(m.getName(), new LuaMethod(m, true));
@@ -100,7 +100,7 @@ public class LuaClassStruct {
         }
     }
 
-    public static LuaObject toLuaObject(Object o) {
+    public static LuaObject toNewLuaObject(Object o) {
         LuaObject ret = new LuaObject(o);
         objectLookup.put(o, ret);
         ret.setmetatable(classLookup.get(o.getClass()).metatable);

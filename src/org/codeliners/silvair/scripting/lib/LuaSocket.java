@@ -24,6 +24,10 @@ public class LuaSocket implements IInputSteamProvider, IOutputStreamProvider {
         }
     }
 
+    public LuaSocket(Socket socket) {
+
+    }
+
     @Override
     public InputStream getInputStream() {
         return null;

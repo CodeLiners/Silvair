@@ -98,7 +98,13 @@ public class LuaMachine {
     private void setUpClasses() {
         for (Class c : ScriptingRegistry.getApis()) {
             LuaClassStruct s = new LuaClassStruct(c);
-            String name = ((LuaClass) c.getAnnotation(LuaClass.class)).value();
+            LuaClass cl = (LuaClass) c.getAnnotation(LuaClass.class);
+            if (cl == null) {
+                System.err.println("Warning: Class " + c.getName() + " is not annotated with @LuaClass, skipping");
+                continue;
+            }
+
+            String name = cl.value();
             if (!name.equals(""))
                 rawset(_G, name, s.getClassTable());
         }
