@@ -1,3 +1,4 @@
+print("EB: ", _ENV);
 EventBus = LCS.class{name = "util.EventBus"};
 
 function EventBus:init()

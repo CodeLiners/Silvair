@@ -1,37 +1,33 @@
-do 
-    local libpath = class.io.File.combine(paths.LUADIR, "lib")
-    local function require_impl(lib)
-        local file = class.io.File(libpath, lib..".lua")
-        --local r = class.io.InputStream(file)
-        --local f, m = load(r:readAll(), "lib: "..lib, "t" --[[no bytecode]], _ENV)
-        --if not f then error(m); end
-        --f()
-        libf = assert(loadfile(file:getAbsName(), "bt", _G))
-        return libf()
-    end
-    function require(...)
-        local ret = {}
-        for k, v in ipairs({...}) do
-            ret[k] = require_impl(v)
-        end
-        return unpack(ret)
-    end
-    table.indexof = function (t, v)
-        local ret = {}
-        for k, v_ in pairs(t) do
-            if v == v_ then
-                table.insert(ret, k)
-            end
-        end
-        return unpack(ret)
-    end
-
-    function _() end
+--local libpath = class.io.File.combine(paths.LUADIR, "lib")
+local r = require;
+function require(lib)
+    r("lua.lib."..lib);
 end
+--[[function require(...)
+    local ret = {}
+    for k, v in ipairs({...}) do
+        ret[k] = require_impl(v)
+    end
+    return unpack(ret)
+end]]
+table.indexof = function (t, v)
+    local ret = {}
+    for k, v_ in pairs(t) do
+        if v == v_ then
+            table.insert(ret, k)
+        end
+    end
+    return unpack(ret)
+end
+
+function _() end
 
 -------------------------------------------------
 print("Core: ", _ENV)
-require ("LCS", "EventBus", "IrcClient", "IrcServer")
+require ("LCS") require("EventBus") require("IrcClient") require "IrcServer"
+
+for k, v in ipairs(_G) do print(k, v) end
+
 local eventBus = EventBus()
 Core = {
     EVENT_BUS = eventBus,
