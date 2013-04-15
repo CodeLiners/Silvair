@@ -6,7 +6,7 @@ do
         --local f, m = load(r:readAll(), "lib: "..lib, "t" --[[no bytecode]], _ENV);
         --if not f then error(m); end
         --f();
-        dofile(file.getAbsName());
+        dofile(file:getAbsName());
     end
     function require(...)
         local ret = {};
