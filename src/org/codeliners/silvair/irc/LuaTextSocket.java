@@ -1,9 +1,6 @@
 package org.codeliners.silvair.irc;
 
-import org.codeliners.silvair.scripting.LuaClass;
-import org.codeliners.silvair.scripting.LuaClassStruct;
-import org.codeliners.silvair.scripting.LuaMachine;
-import org.codeliners.silvair.scripting.LuaObject;
+import org.codeliners.silvair.scripting.*;
 import org.codeliners.silvair.scripting.lib.LuaSocket;
 import org.codeliners.silvair.utils.IStartable;
 import org.luaj.vm2.*;
@@ -12,7 +9,7 @@ import java.io.*;
 import java.net.Socket;
 
 @LuaClass("class.net.TextSocket")
-public class LuaTextSocket implements IStartable {
+public class LuaTextSocket extends EventClass implements IStartable {
 
     private final String server;
     private final int port;
@@ -67,13 +64,10 @@ public class LuaTextSocket implements IStartable {
                 while (true) {
                     String line = reader.readLine();
                     if (line == null) {
-                        LuaMachine.eventLib.raise("socket_connection_closed", LuaValue.varargsOf(new LuaValue[]{
-                                LuaClassStruct.getLuaObjectOf(parent)
-                        }));
+                        raiseEvent("closed", LuaValue.varargsOf(new LuaValue[]{}));
                         break;
                     }
-                    LuaMachine.eventLib.raise("socket_line", LuaValue.varargsOf(new LuaValue[]{
-                            LuaClassStruct.getLuaObjectOf(parent),
+                    raiseEvent("line", LuaValue.varargsOf(new LuaValue[]{
                             LuaValue.valueOf(line)
                     }));
                 }

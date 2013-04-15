@@ -15,20 +15,7 @@ public class EventLib extends OneArgFunction {
     @Override
     public LuaValue call(LuaValue luaValue) {
         LuaTable lib = new LuaTable();
-        lib.set("on", new TwoArgFunction() {
-            @Override
-            public LuaValue call(LuaValue luaValue, LuaValue luaValue2) {
-                try {
-                    if (handlers.get(luaValue.checkjstring()) == null)
-                        handlers.put(luaValue.checkjstring(), new LinkedList<LuaFunction>());
-                    handlers.get(luaValue.checkjstring()).add((LuaFunction) luaValue2.checkfunction());
-                    return NIL;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return NIL;
-            }
-        });
+        lib.set("on", new FunctionOn());
         luaValue.set("event", lib);
         return lib;
     }
@@ -62,6 +49,24 @@ public class EventLib extends OneArgFunction {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        }
+    }
+
+    public void on(String event, LuaFunction callback) {
+        try {
+            if (handlers.get(event) == null)
+                handlers.put(event, new LinkedList<LuaFunction>());
+            handlers.get(event).add(callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class FunctionOn extends TwoArgFunction {
+        @Override
+        public LuaValue call(LuaValue luaValue, LuaValue luaValue2) {
+            on(luaValue.checkjstring(1), (LuaFunction) luaValue2.checkfunction(2));
+            return NIL;
         }
     }
 }

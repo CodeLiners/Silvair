@@ -12,47 +12,55 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 @LuaClass("class.net.ServerSocket")
-public class LuaServerSocket {
+public class LuaServerSocket extends EventClass implements IStartable {
 
     ServerSocket server;
     boolean textmode = false;
-    private Object parent = this;
+    private boolean started;
 
     public LuaServerSocket(Varargs args) {
         try {
             server = new ServerSocket(args.checkint(1));
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            Socket socket = server.accept();
-                            IStartable lsock;
-                            try {
-                                if (textmode)
-                                    lsock = new LuaTextSocket(socket);
-                                else
-                                    lsock = new LuaSocket(socket);
-                                LuaMachine.eventLib.raise("server_accepted", LuaValue.varargsOf(new LuaValue[]{
-                                        LuaClassStruct.getLuaObjectOf(parent),
-                                        LuaValue.valueOf(textmode),
-                                        LuaClassStruct.toNewLuaObject(lsock)
-                                }));
-                                lsock.start();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } catch (IOException e) {
-                        LuaMachine.eventLib.raise("server_closed", LuaValue.varargsOf(new LuaValue[]{
-                                LuaClassStruct.getLuaObjectOf(this)
-                        }));
-                    }
-                }
-            }.start();
         } catch (IOException e) {
             throw new LuaError(e.getMessage());
         }
+    }
+
+    @Override
+    public void start() {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        Socket socket = server.accept();
+                        IStartable lsock;
+                        try {
+                            if (textmode)
+                                lsock = new LuaTextSocket(socket);
+                            else
+                                lsock = new LuaSocket(socket);
+                            LuaMachine.eventLib.raise("accepted", LuaValue.varargsOf(new LuaValue[]{
+                                    LuaValue.valueOf(textmode),
+                                    LuaClassStruct.toNewLuaObject(lsock)
+                            }));
+                            lsock.start();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (IOException e) {
+                    raiseEvent("closed", LuaValue.varargsOf(new LuaValue[]{}));
+                }
+            }
+        }.start();
+        started = true;
+    }
+
+    public Varargs startListening(Varargs args) {
+        if (!started)
+            start();
+        return LuaValue.varargsOf(new LuaValue[0]);
     }
 
     public Varargs setTextMode(Varargs args) {

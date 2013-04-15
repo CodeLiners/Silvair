@@ -4,6 +4,6 @@ import org.codeliners.silvair.scripting.lib.LuaInputStream;
 
 import java.io.InputStream;
 
-public interface IInputSteamProvider {
+public interface IInputStreamProvider {
     public InputStream getInputStream();
 }

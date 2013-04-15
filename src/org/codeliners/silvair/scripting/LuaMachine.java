@@ -76,7 +76,10 @@ public class LuaMachine {
         _G.load(eventLib);
         LuaC.install();
         _G.compiler = LuaC.instance;
-        //_G.set("print", new FunctionPrint());
+
+        LuaTable paths = new LuaTable();
+        paths.set("LUADIR", new File("lua").getAbsolutePath());
+        _G.set("paths", paths);
         setUpClasses();
     }
 
