@@ -3,6 +3,7 @@ package org.codeliners.silvair.scripting.lib;
 import org.codeliners.silvair.scripting.LuaClass;
 import org.codeliners.silvair.scripting.lib.api.IInputSteamProvider;
 import org.codeliners.silvair.scripting.lib.api.IOutputStreamProvider;
+import org.codeliners.silvair.utils.IStartable;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.Varargs;
 
@@ -12,7 +13,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 @LuaClass("class.net.Socket")
-public class LuaSocket implements IInputSteamProvider, IOutputStreamProvider {
+public class LuaSocket implements IInputSteamProvider, IOutputStreamProvider, IStartable {
 
     private Socket socket;
 
@@ -36,5 +37,9 @@ public class LuaSocket implements IInputSteamProvider, IOutputStreamProvider {
     @Override
     public OutputStream getOutputStream() {
         return null;
+    }
+
+    @Override
+    public void start() {
     }
 }

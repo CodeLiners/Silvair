@@ -8,6 +8,7 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.compiler.LuaC;
 import org.luaj.vm2.lib.*;
+import org.luaj.vm2.lib.jse.JseBaseLib;
 import org.luaj.vm2.lib.jse.JseIoLib;
 
 import java.io.*;
@@ -30,7 +31,7 @@ public class LuaMachine {
             reader = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream("core.lua")));
         } catch (Exception ex) {
             try {
-                reader = new BufferedReader(new FileReader(new File("lua/core.lua")));
+                reader = new BufferedReader(new FileReader(new File("lua" + File.separator + "core.lua")));
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -41,13 +42,15 @@ public class LuaMachine {
         try {
             boolean firstLine = true;
             while ((line = reader.readLine()) != null) {
-                if (firstLine) s += "\n";
+                if (!firstLine) s += "\n";
                 firstLine = false;
                 s += line;
             }
             Varargs ret = _G.get("load").call(LuaValue.valueOf(s), LuaValue.valueOf("core"));
             if (ret.isfunction(1)) {
+                System.out.println("Starting lua code...");
                 ret.arg1().call();
+                System.out.println("Lua code finished.");
             } else {
                 System.err.println("Error in core.lua: " + ret.tojstring(2));
                 System.exit(-1);
@@ -59,7 +62,7 @@ public class LuaMachine {
 
     private void loadGlobals() {
         _G = new Globals();
-        baseLib = new BaseLib();
+        baseLib = new JseBaseLib();
         _G.load(baseLib);
         _G.load(new PackageLib());
         _G.load(new Bit32Lib());
@@ -73,6 +76,7 @@ public class LuaMachine {
         _G.load(eventLib);
         LuaC.install();
         _G.compiler = LuaC.instance;
+        //_G.set("print", new FunctionPrint());
         setUpClasses();
     }
 
@@ -110,4 +114,13 @@ public class LuaMachine {
         }
     }
 
+
+    private class FunctionPrint extends OneArgFunction {
+
+        @Override
+        public LuaValue call(LuaValue luaValue) {
+            System.out.println(luaValue.tojstring());
+            return NIL;
+        }
+    }
 }

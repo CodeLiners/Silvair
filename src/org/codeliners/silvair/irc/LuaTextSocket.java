@@ -4,19 +4,23 @@ import org.codeliners.silvair.scripting.LuaClass;
 import org.codeliners.silvair.scripting.LuaClassStruct;
 import org.codeliners.silvair.scripting.LuaMachine;
 import org.codeliners.silvair.scripting.LuaObject;
+import org.codeliners.silvair.scripting.lib.LuaSocket;
+import org.codeliners.silvair.utils.IStartable;
 import org.luaj.vm2.*;
 
 import java.io.*;
 import java.net.Socket;
 
 @LuaClass("class.net.TextSocket")
-public class LuaTextSocket {
+public class LuaTextSocket implements IStartable {
 
     private final String server;
     private final int port;
     private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
+    private LuaTextSocket parent = this;
+    private boolean started = false;
 
     public LuaTextSocket(Socket s) throws IOException {
         socket = s;
@@ -28,7 +32,6 @@ public class LuaTextSocket {
     private void setup() throws IOException {
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        new ReadThread();
     }
 
     public LuaTextSocket(Varargs args) {
@@ -40,7 +43,21 @@ public class LuaTextSocket {
             setup();
         } catch (IOException e) {
             throw new LuaError(e);
+        } catch(Exception ex) {
+            ex.printStackTrace();
         }
+    }
+
+    @Override
+    public void start() {
+        new ReadThread().start();
+        started = true;
+    }
+
+    public Varargs startListening(Varargs args) {
+        if (!started)
+            start();
+        return LuaValue.varargsOf(new LuaValue[0]);
     }
 
     private class ReadThread extends Thread {
@@ -51,12 +68,12 @@ public class LuaTextSocket {
                     String line = reader.readLine();
                     if (line == null) {
                         LuaMachine.eventLib.raise("socket_connection_closed", LuaValue.varargsOf(new LuaValue[]{
-                                LuaClassStruct.getLuaObjectOf(this)
+                                LuaClassStruct.getLuaObjectOf(parent)
                         }));
                         break;
                     }
                     LuaMachine.eventLib.raise("socket_line", LuaValue.varargsOf(new LuaValue[]{
-                            LuaClassStruct.getLuaObjectOf(this),
+                            LuaClassStruct.getLuaObjectOf(parent),
                             LuaValue.valueOf(line)
                     }));
                 }
@@ -72,6 +89,8 @@ public class LuaTextSocket {
             writer.flush();
         } catch (IOException e) {
             throw new LuaError(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return LuaValue.varargsOf(new LuaValue[0]);
     }

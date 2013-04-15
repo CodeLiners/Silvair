@@ -1,5 +1,6 @@
 package org.codeliners.silvair.scripting;
 
+import org.codeliners.silvair.util.WeakReference;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
@@ -11,11 +12,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 
 public class LuaClassStruct {
 
-    private static WeakHashMap<Object, LuaObject> objectLookup = new WeakHashMap<Object, LuaObject>();
+    private static HashMap<Object, LuaObject> objectLookup = new HashMap<Object, LuaObject>();
     private static HashMap<Class, LuaClassStruct> classLookup = new HashMap<Class, LuaClassStruct>();
 
     private Class javaClass;
@@ -26,7 +26,7 @@ public class LuaClassStruct {
 
         this.javaClass = javaClass;
         for (Method m : javaClass.getMethods()) {
-            if (!(m.getParameterTypes() == new Class[]{Varargs.class} && m.getReturnType() == Varargs.class))
+            if (!(m.getParameterTypes().length == 1 && m.getParameterTypes()[0] == Varargs.class && m.getReturnType() == Varargs.class))
                 continue;
             if (Modifier.isStatic(m.getModifiers())) {
                 classTable.set(m.getName(), new LuaMethod(m, true));
@@ -45,15 +45,21 @@ public class LuaClassStruct {
 
         try {
             Constructor c = javaClass.getConstructor(Varargs.class);
-            Object o = c.newInstance(args);
+            Object o = null;
+            try {
+                o = c.newInstance(args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
             LuaObject obj = new LuaObject(o);
             obj.setmetatable(metatable);
             objectLookup.put(o, obj);
             return obj;
         } catch (LuaError error) {
             throw error;
-        } catch (Exception ex) {
-            throw new LuaError("Could not create instance: " + ex.getClass().getName() + ": " + ex.getMessage());
+        } catch (Throwable ex) {
+            LuaError e = new LuaError("Could not create instance: " + ex.getClass().getName() + ": " + ex.getMessage());
+            throw e;
         }
 
     }
@@ -89,12 +95,17 @@ public class LuaClassStruct {
                     for (int i = 0; i < a.length; i++) {
                         a[i] = args.arg(i + 2);
                     }
+                    if (!(args.arg1() instanceof  LuaObject))
+                        throw new LuaError("Invalid object");
                     return (Varargs) m.invoke(((LuaObject) args.arg1()).getObject(), LuaValue.varargsOf(a));
                 }
 
             } catch (LuaError error) {
                 throw error;
             } catch (Exception ex) {
+                System.err.println("Start of lua->java call stacktrace");
+                ex.printStackTrace();
+                System.err.println("End of lua->java call stacktrace");
                 throw new LuaError("vm error: " + ex.getClass().getName() + ": " + ex.getMessage());
             }
         }
@@ -102,8 +113,9 @@ public class LuaClassStruct {
 
     public static LuaObject toNewLuaObject(Object o) {
         LuaObject ret = new LuaObject(o);
-        objectLookup.put(o, ret);
+        objectLookup.put(o, (ret));
         ret.setmetatable(classLookup.get(o.getClass()).metatable);
+
         return ret;
     }
 
@@ -119,6 +131,8 @@ public class LuaClassStruct {
     }
 
     public static LuaObject getLuaObjectOf(Object o) {
+        if (o.getClass().getAnnotation(LuaClass.class) == null)
+            System.out.println("WARNING: Tried to get Lua Object if a non-luaclass object: " + o);
         return objectLookup.get(o);
     }
 }

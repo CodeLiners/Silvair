@@ -1,6 +1,8 @@
 package org.codeliners.silvair.scripting;
 
 import org.codeliners.silvair.irc.LuaTextSocket;
+import org.codeliners.silvair.scripting.lib.LuaSocket;
+import org.codeliners.silvair.utils.IStartable;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -14,6 +16,7 @@ public class LuaServerSocket {
 
     ServerSocket server;
     boolean textmode = false;
+    private Object parent = this;
 
     public LuaServerSocket(Varargs args) {
         try {
@@ -24,17 +27,18 @@ public class LuaServerSocket {
                     try {
                         while (true) {
                             Socket socket = server.accept();
-                            Object lsock;
+                            IStartable lsock;
                             try {
                                 if (textmode)
                                     lsock = new LuaTextSocket(socket);
                                 else
-                                    lsock = new LuaTextSocket(socket);
+                                    lsock = new LuaSocket(socket);
                                 LuaMachine.eventLib.raise("server_accepted", LuaValue.varargsOf(new LuaValue[]{
-                                        LuaClassStruct.getLuaObjectOf(this),
+                                        LuaClassStruct.getLuaObjectOf(parent),
                                         LuaValue.valueOf(textmode),
                                         LuaClassStruct.toNewLuaObject(lsock)
                                 }));
+                                lsock.start();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
