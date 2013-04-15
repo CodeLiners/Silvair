@@ -3,40 +3,42 @@ package org.codeliners.silvair.scripting.lib;
 import org.codeliners.silvair.scripting.LuaClass;
 import org.codeliners.silvair.scripting.lib.api.IInputStreamProvider;
 import org.codeliners.silvair.scripting.lib.api.IOutputStreamProvider;
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 @LuaClass("class.io.File")
-public class LuaFile extends File implements IOutputStreamProvider, IInputStreamProvider{
+public class LuaFile implements IOutputStreamProvider, IInputStreamProvider{
 
+    private final File f;
 
     public LuaFile(Varargs args) {
-        super(args.checkjstring(1));
+        if (args.narg() == 1)
+            f = new File(args.checkjstring(1));
+        else
+            f = new File(args.checkjstring(1), args.checkjstring(2));
     }
 
     public Varargs touch(Varargs args) {
         try {
-            return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(createNewFile())});
+            return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(f.createNewFile())});
         } catch (IOException e) {
             return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(false)});
         }
     }
 
     public Varargs delete(Varargs args) {
-        return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(delete())});
+        return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(f.delete())});
     }
 
     public Varargs listDirs(Varargs args) {
-        if (isDirectory())
+        if (f.isDirectory())
             return LuaValue.varargsOf(new LuaValue[]{LuaValue.NIL});
         LuaTable ret = new LuaTable();
-        for (String s : list()) {
+        for (String s : f.list()) {
             ret.insert(ret.length() + 1, LuaValue.valueOf(s));
         }
         return LuaValue.varargsOf(new LuaValue[]{ret});
@@ -44,11 +46,23 @@ public class LuaFile extends File implements IOutputStreamProvider, IInputStream
 
     @Override
     public InputStream getInputStream() {
-        return null;
+        try {
+            return new FileInputStream(f);
+        } catch (FileNotFoundException e) {
+            throw new LuaError(e.getMessage());
+        }
     }
 
     @Override
     public OutputStream getOutputStream() {
-        return null;
+        try {
+            return new FileOutputStream(f);
+        } catch (FileNotFoundException e) {
+            throw new LuaError(e.getMessage());
+        }
+    }
+
+    public static Varargs combine(Varargs args) {
+        return LuaValue.varargsOf(new LuaValue[]{LuaValue.valueOf(new File(args.checkjstring(1), args.checkjstring(2)).getAbsolutePath())});
     }
 }

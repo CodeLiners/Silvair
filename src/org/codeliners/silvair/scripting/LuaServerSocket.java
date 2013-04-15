@@ -40,7 +40,7 @@ public class LuaServerSocket extends EventClass implements IStartable {
                                 lsock = new LuaTextSocket(socket);
                             else
                                 lsock = new LuaSocket(socket);
-                            LuaMachine.eventLib.raise("accepted", LuaValue.varargsOf(new LuaValue[]{
+                            LuaMachine.eventLib.raise("accept", LuaValue.varargsOf(new LuaValue[]{
                                     LuaValue.valueOf(textmode),
                                     LuaClassStruct.toNewLuaObject(lsock)
                             }));
